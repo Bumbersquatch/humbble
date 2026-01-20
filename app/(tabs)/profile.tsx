@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Text,
   View,
+  Alert,
 } from "react-native";
 import React from "react";
 import Header from "@/components/Header";
@@ -12,6 +13,8 @@ import { AntDesign, Ionicons, Octicons } from "@expo/vector-icons";
 import Avatar from "@/components/Avatar";
 import Button from "@/components/Button";
 import { useRouter } from "expo-router";
+import { useAuth } from "@/context/AuthContext";
+import { useNavigation } from "@react-navigation/native";
 
 const PLANS = [
   { plan: "Get exclusive photo insights", p1: true, p2: true },
@@ -29,6 +32,38 @@ const profile = () => {
     <AntDesign name="setting" size={24} color="black" />
   );
   const router = useRouter();
+  const navigation = useNavigation();
+  const { logout } = useAuth();
+
+  const handleLogout = async () => {
+    Alert.alert(
+      "Logout",
+      "Are you sure you want to logout?",
+      [
+        {
+          text: "Cancel",
+          onPress: () => {},
+          style: "cancel",
+        },
+        {
+          text: "Logout",
+          onPress: async () => {
+            try {
+              await logout();
+              navigation.reset({
+                index: 0,
+                routes: [{ name: "auth/signin" }],
+              });
+            } catch (error: any) {
+              Alert.alert("Error", error.message || "Failed to logout");
+            }
+          },
+          style: "destructive",
+        },
+      ]
+    );
+  };
+
   return (
     <ScrollView style={{ paddingHorizontal: 8 }}>
       <View style={{ gap: 10 }}>
@@ -49,155 +84,14 @@ const profile = () => {
             </Button>
           </View>
         </View>
-        <View
-          style={{ flexDirection: "row", gap: 10, justifyContent: "center" }}
+        
+        <Button
+          style={{ backgroundColor: "#ff4444", marginTop: 20 }}
+          textStyle={{ color: "white" }}
+          onPress={handleLogout}
         >
-          <View
-            style={{
-              flexDirection: "row",
-              gap: 5,
-              flex: 1,
-              borderWidth: 1,
-              paddingHorizontal: 3,
-              paddingVertical: 10,
-              borderRadius: 12,
-              borderColor: "#f0eded",
-            }}
-          >
-            <View style={styles.circle}>
-              <AntDesign name="star" size={24} color="black" />
-            </View>
-            <View style={{ flexDirection: "column" }}>
-              <Text style={{ fontWeight: "800", color: "white" }}>Spotlight</Text>
-              <Text>Stand out</Text>
-            </View>
-          </View>
-          <View
-            style={{
-              flexDirection: "row",
-              gap: 5,
-              flex: 1,
-              borderWidth: 1,
-              paddingHorizontal: 3,
-              paddingVertical: 10,
-              borderRadius: 12,
-              borderColor: "#f0eded",
-            }}
-          >
-            <View style={styles.circle}>
-              <AntDesign name="star" size={24} color="black" />
-            </View>
-            <View style={{ flexDirection: "column" }}>
-              <Text style={{ fontWeight: "800", color: "white" }}>Spotlight</Text>
-              <Text>Stand out</Text>
-            </View>
-          </View>
-        </View>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View
-            style={{
-              backgroundColor: "#ffa600",
-              height: 160,
-              width: 300,
-              borderRadius: 20,
-              justifyContent: "center",
-              alignItems: "center",
-              paddingHorizontal: 20,
-              gap: 10,
-              marginRight: 5,
-            }}
-          >
-            <Text style={{ fontWeight: "bold", textAlign: "center" }}>
-              Premium+
-            </Text>
-            <Text style={{ fontWeight: "300", textAlign: "center" }}>
-              Get the VIP teatment, and enjoy better ways to connect with
-              incredible people
-            </Text>
-            <Button
-              style={{ backgroundColor: "#1c1c1c" }}
-              textStyle={{ color: "#ebebeb" }}
-              onPress={() => router.replace("/auth/signin")}
-
-            >
-              Complete profile
-            </Button>
-          </View>
-          <View
-            style={{
-              backgroundColor: "#ffa600",
-              height: 160,
-              width: 300,
-              borderRadius: 20,
-              justifyContent: "center",
-              alignItems: "center",
-              paddingHorizontal: 20,
-              gap: 10,
-            }}
-          >
-            <Text style={{ fontWeight: "bold", textAlign: "center" }}>
-              Premium+
-            </Text>
-            <Text style={{ fontWeight: "300", textAlign: "center" }}>
-              Get the VIP teatment, and enjoy better ways to connect with
-              incredible people
-            </Text>
-            <Button
-              style={{ backgroundColor: "#1c1c1c" }}
-              textStyle={{ color: "#ebebeb" }}
-              onPress={() => router.replace("/auth/signin")}
-            >
-              Complete profile
-            </Button>
-          </View>
-        </ScrollView>
-        <View style={styles.table}>
-          <View style={styles.tableItem}>
-            <Text style={[styles.row1, { fontWeight: "bold" }]}>
-              What you get:
-            </Text>
-            <Text style={[styles.row2, { fontWeight: "bold" }]}>Premium+</Text>
-            <Text style={[styles.row3, { fontWeight: "bold" }]}>Premium</Text>
-          </View>
-          {PLANS.map((planitem) => {
-            return (
-              <View style={styles.tableItem} key={planitem.plan}>
-                <Text style={[styles.row1, { fontWeight: "300", color:"white" }]}>
-                  {planitem.plan}
-                </Text>
-                <Ionicons
-                  style={styles.row2}
-                  name="checkmark-outline"
-                  size={24}
-                  color={planitem.p1 ? "black" : "#bdb9b9"}
-                />
-                <Ionicons
-                  style={styles.row3}
-                  name="checkmark-outline"
-                  size={24}
-                  color={planitem.p2 ? "black" : "#bdb9b9"}
-                />
-              </View>
-            );
-          })}
-          <View style={styles.tableItem}>
-            <Text style={[styles.row1, { fontWeight: "400" }]}>
-              What you get:
-            </Text>
-            <Ionicons
-              style={styles.row2}
-              name="checkmark-outline"
-              size={24}
-              color="black"
-            />
-            <Ionicons
-              style={styles.row3}
-              name="checkmark-outline"
-              size={24}
-              color="black"
-            />
-          </View>
-        </View>
+          Logout
+        </Button>
       </View>
     </ScrollView>
   );

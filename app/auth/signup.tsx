@@ -14,7 +14,8 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import appwrite from '../../constants/appwrite';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { auth } from '../../constants/firebase';
 
 const { width, height } = Dimensions.get('window');
 
@@ -28,12 +29,15 @@ const SignupScreen = () => {
   const handleSignup = async () => {
     setLoading(true);
     try {
-      await appwrite?.account?.create(
-        'unique()',
-        email,
-        password,
-        name
-      );
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      
+      // Update the user's display name
+      if (userCredential.user) {
+        await updateProfile(userCredential.user, {
+          displayName: name,
+        });
+      }
+      
       Alert.alert('Success', 'Account created! Please sign in.');
       setEmail('');
       setPassword('');

@@ -14,7 +14,9 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import appwrite from '../../constants/appwrite';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../../constants/firebase';
+import { useAuth } from '../../context/AuthContext';
 
 const { width, height } = Dimensions.get('window');
 
@@ -23,20 +25,24 @@ const SigninScreen = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { setUser } = useAuth();
 
   const handleSignin = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Please enter email and password');
+      return;
+    }
+    
     setLoading(true);
     try {
-      await appwrite?.account?.createEmailSession(email, password);
-      Alert.alert('Success', 'Signed in successfully!');
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      setUser(result.user);
       setEmail('');
       setPassword('');
-      // You can navigate to the main app screen here
-      // router.replace('/');
+      router.replace('/(tabs)');
     } catch (error: any) {
-      Alert.alert('Sign In Error', error.message || 'Unknown error');
-    } finally {
       setLoading(false);
+      Alert.alert('Sign In Error', error.message || 'Unknown error');
     }
   };
 

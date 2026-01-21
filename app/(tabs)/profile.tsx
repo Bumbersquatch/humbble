@@ -7,7 +7,7 @@ import {
   View,
   Alert,
 } from "react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Header from "@/components/Header";
 import { AntDesign, Ionicons, Octicons } from "@expo/vector-icons";
 import Avatar from "@/components/Avatar";
@@ -16,24 +16,33 @@ import { useRouter } from "expo-router";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigation } from "@react-navigation/native";
 
-const PLANS = [
-  { plan: "Get exclusive photo insights", p1: true, p2: true },
-  { plan: "Fast track your likes", p1: true, p2: true },
-  { plan: "Standout every day", p1: true, p2: true },
-  { plan: "Unlimited likes", p1: true, p2: false },
-  { plan: "See who liked you", p1: true, p2: false },
-  { plan: "Advanced filters", p1: true, p2: false },
-  { plan: "Incognito mode", p1: true, p2: false },
-  { plan: "Two compliments a weeks", p1: true, p2: true },
-];
-
 const profile = () => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const headerbutton = () => (
     <AntDesign name="setting" size={24} color="black" />
   );
   const router = useRouter();
   const navigation = useNavigation();
-  const { logout } = useAuth();
+  const { logout, user, userData, fetchUserData } = useAuth();
+
+  // Refetch user data when needed
+  useEffect(() => {
+    const refetchData = async () => {
+      if (user && !userData) {
+        setLoading(true);
+        try {
+          await fetchUserData(user.uid);
+          setError(null);
+        } catch (err: any) {
+          setError(err.message || "Failed to fetch user data");
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+    refetchData();
+  }, [user]);
 
   const handleLogout = async () => {
     Alert.alert(
@@ -68,22 +77,57 @@ const profile = () => {
     <ScrollView style={{ paddingHorizontal: 8 }}>
       <View style={{ gap: 10 }}>
         <Header headerTitle={"Profile"} button={headerbutton} />
-        <View style={{ flexDirection: "row", gap: 10 }}>
-          <Avatar
-            size={80}
-            image="https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
-          />
-          <View>
-            <Text style={{ fontSize: 22, fontWeight: "600" }}>Prakash, 27</Text>
-            <Button
-              style={{ backgroundColor: "#ebebeb" }}
-              textStyle={{ color: "#1c1c1c" }}
-              onPress={() => router.replace("/auth/signin")}
-            >
-              Complete profile
-            </Button>
-          </View>
-        </View>
+        
+        {loading && <Text style={{ fontSize: 16, textAlign: "center", marginTop: 20 }}>Loading user data...</Text>}
+        
+        {error && <Text style={{ fontSize: 16, color: "red", textAlign: "center", marginTop: 20 }}>{error}</Text>}
+        
+        {userData && (
+          <>
+            <View style={{ flexDirection: "row", gap: 10 }}>
+              <Avatar
+                size={80}
+                image={userData.profileImage || "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"}
+              />
+              <View>
+                <Text style={{ fontSize: 22, fontWeight: "600" }}>
+                  {userData.first_name && userData.last_name
+                    ? `${userData.first_name} ${userData.last_name}`
+                    : userData.first_name || userData.email || "User"}
+                  {userData.age ? `, ${userData.age}` : ""}
+                </Text>
+                <Text style={{ fontSize: 14, color: "#666", marginTop: 4 }}>
+                  {userData.email}
+                </Text>
+                <Button
+                  style={{ backgroundColor: "#ebebeb", marginTop: 8 }}
+                  textStyle={{ color: "#1c1c1c" }}
+                  onPress={() => router.replace("/auth/signin")}
+                >
+                  Edit Profile
+                </Button>
+              </View>
+            </View>
+
+            {/* Display additional user data if available */}
+            {(userData.bio || userData.location || userData.phone) && (
+              <View style={{ marginTop: 20, paddingHorizontal: 10, gap: 10 }}>
+                {userData.bio && (
+                  <View>
+                    <Text style={{ fontSize: 12, color: "#999", fontWeight: "600" }}>BIO</Text>
+                    <Text style={{ fontSize: 14, marginTop: 4 }}>{userData.bio}</Text>
+                  </View>
+                )}
+                {userData.location && (
+                  <View>
+                    <Text style={{ fontSize: 12, color: "#999", fontWeight: "600" }}>LOCATION</Text>
+                    <Text style={{ fontSize: 14, marginTop: 4 }}>{userData.location.lat}</Text>
+                  </View>
+                )}
+              </View>
+            )}
+          </>
+        )}
         
         <Button
           style={{ backgroundColor: "#ff4444", marginTop: 20 }}

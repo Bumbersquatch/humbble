@@ -1,6 +1,10 @@
 // Firebase client configuration for React Native/Expo
 import { initializeApp } from 'firebase/app';
-import { getAuth, Auth } from 'firebase/auth';
+import { getFirestore, Firestore } from 'firebase/firestore';
+// @ts-ignore: getReactNativePersistence exists in the RN bundle 
+// but is often missing from public TypeScript definitions.
+import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // TODO: Replace these with your Firebase config
 // Get your config from Firebase Console -> Project Settings
@@ -16,7 +20,12 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize Firebase Authentication
-const auth: Auth = getAuth(app);
+// Initialize Firebase Authentication with AsyncStorage persistence
+const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(AsyncStorage),
+});
 
-export { auth, app };
+// Initialize Firestore
+const db: Firestore = getFirestore(app);
+
+export { auth, app, db };
